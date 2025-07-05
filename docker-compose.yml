@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  web:
+    container_name: seculog-web
+    build:
+      context: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://seculog:seculog@db/seculog_db
+      - PYTHONPATH=/app
+
+  db:
+    container_name: seculog-db-1
+    image: postgres:14
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: seculog
+      POSTGRES_PASSWORD: seculog
+      POSTGRES_DB: seculog_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  test:
+    build:
+      context: .
+    working_dir: /app
+    command: pytest
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://seculog:seculog@db/seculog_db
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
