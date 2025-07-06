@@ -1,3 +1,4 @@
+# tests/test_logs.py
 import pytest
 from httpx import AsyncClient
 
@@ -20,4 +21,4 @@ async def test_create_log_success(async_client: AsyncClient):
 async def test_create_log_failure_missing_message(async_client: AsyncClient):
     data = {"level": "ERROR"}
     response = await async_client.post("/logs", json=data)
-    assert response.status_code == 422  # Validation error
+    assert response.status_code == 422  # FastAPI returns 422 on validation errors
