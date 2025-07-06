@@ -1,13 +1,13 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy import Column, Integer, String, DateTime
+from app.database import Base
 from datetime import datetime
-from .database import Base
 
 
-class LogEntry(Base):
+class Log(Base):
     __tablename__ = "logs"
 
     id = Column(Integer, primary_key=True, index=True)
     source = Column(String, index=True)
-    level = Column(String)
-    message = Column(Text)
+    message = Column(String)
+    level = Column(String, index=True)
     timestamp = Column(DateTime, default=datetime.utcnow)

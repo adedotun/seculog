@@ -1,16 +1,27 @@
 from sqlalchemy.orm import Session
-from . import models, schemas
+from app import models
 from datetime import datetime
+from typing import Optional
 
 
-def create_log(db: Session, log: schemas.LogCreate):
-    db_log = models.LogEntry(
-        source=log.source,
-        level=log.level,
-        message=log.message,
-        timestamp=log.timestamp or datetime.utcnow(),
-    )
-    db.add(db_log)
-    db.commit()
-    db.refresh(db_log)
-    return db_log
+def get_logs(
+    db: Session,
+    level: Optional[str] = None,
+    source: Optional[str] = None,
+    start_time: Optional[datetime] = None,
+    end_time: Optional[datetime] = None,
+    skip: int = 0,
+    limit: int = 10,
+):
+    query = db.query(models.Log)
+
+    if level:
+        query = query.filter(models.Log.level == level)
+    if source:
+        query = query.filter(models.Log.source == source)
+    if start_time:
+        query = query.filter(models.Log.timestamp >= start_time)
+    if end_time:
+        query = query.filter(models.Log.timestamp <= end_time)
+
+    return query.offset(skip).limit(limit).all()

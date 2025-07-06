@@ -1,15 +1,24 @@
-from fastapi.testclient import TestClient
-from app.main import app
-
-client = TestClient(app)
+from datetime import datetime
+from app.models import Log
 
 
-def test_create_log():
-    response = client.post(
-        "/logs/",
-        json={"source": "unit-test", "level": "INFO", "message": "Test log entry"},
+def test_read_logs(client, db_session):
+    log1 = Log(
+        source="auth-service",
+        message="Logged in",
+        level="INFO",
+        timestamp=datetime.utcnow(),
     )
-    assert response.status_code == 201
-    data = response.json()
-    assert data["source"] == "unit-test"
-    assert "id" in data
+    log2 = Log(
+        source="payment",
+        message="Payment failed",
+        level="ERROR",
+        timestamp=datetime.utcnow(),
+    )
+    db_session.add_all([log1, log2])
+    db_session.commit()
+
+    response = client.get("/logs")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+    assert len(response.json()) >= 2
