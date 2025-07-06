@@ -1,24 +1,27 @@
-from fastapi import FastAPI, Depends, Query
+from fastapi import FastAPI, Depends, status
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from datetime import datetime
+from app.schemas import LogCreate
+from app.models import Log
+from app.database import get_db
+from fastapi import APIRouter
 
-from app import models, schemas, crud
-from app.database import engine, get_db
+app = FastAPI()  # Define your FastAPI app here
 
-models.Base.metadata.create_all(bind=engine)
-
-app = FastAPI()
+router = APIRouter()
 
 
-@app.get("/logs", response_model=List[schemas.LogResponse])
-def read_logs(
-    level: Optional[str] = Query(None),
-    source: Optional[str] = Query(None),
-    start_time: Optional[datetime] = Query(None),
-    end_time: Optional[datetime] = Query(None),
-    skip: int = 0,
-    limit: int = 10,
-    db: Session = Depends(get_db),
-):
-    return crud.get_logs(db, level, source, start_time, end_time, skip, limit)
+@router.post("/logs", response_model=LogCreate, status_code=status.HTTP_201_CREATED)
+def create_log(log: LogCreate, db: Session = Depends(get_db)):
+    if not log.timestamp:
+        from datetime import datetime
+
+        log.timestamp = datetime.utcnow()
+
+    db_log = Log(level=log.level, message=log.message, timestamp=log.timestamp)
+    db.add(db_log)
+    db.commit()
+    db.refresh(db_log)
+    return db_log
+
+
+app.include_router(router)  # Register the router with your app
