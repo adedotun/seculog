@@ -15,7 +15,7 @@ def create_log(log: LogCreate, db: Session = Depends(get_db)):
     if not log.timestamp:
         from datetime import datetime
 
-        log.timestamp = datetime.utcnow()
+        log.timestamp = datetime.now()
 
     db_log = Log(level=log.level, message=log.message, timestamp=log.timestamp)
     db.add(db_log)
