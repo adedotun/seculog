@@ -23,7 +23,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"  # Changed from 5432:5432 to avoid host conflict
     environment:
       POSTGRES_USER: seculog
       POSTGRES_PASSWORD: seculog
